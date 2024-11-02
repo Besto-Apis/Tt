@@ -1,2 +1,4 @@
 Flask
-requests 
+requests
+firebase-admin
+aiohttp
