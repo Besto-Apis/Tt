@@ -36,12 +36,12 @@ async def generate_results(tokens):
         return await asyncio.gather(*tasks)
 
 @app.route('/Token', methods=['GET'])
-def get_token():
+async def get_token():
     tokens = load_tokens()
     if not tokens:
         return Response(" - Failed to load tokens!", status=500, mimetype='text/plain')
 
-    results = asyncio.run(generate_results(tokens))
+    results = await generate_results(tokens)
     return Response("\n".join(results), mimetype='text/plain')
 
 def load_tokens():
