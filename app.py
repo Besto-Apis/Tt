@@ -1,16 +1,8 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 import requests
-import json
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
-
-def load_tokens():
-    url = "https://raw.githubusercontent.com/Besto-Apis/Tt/refs/heads/main/Tokens.txt"
-    response = requests.get(url)
-    if response.status_code == 200:
-        tokens_dict = json.loads(response.text)
-        return [(uid, pw) for uid, pw in tokens_dict.items()]
-    return []
 
 def fetch_token(uid, password):
     url = "https://100067.connect.garena.com/oauth/guest/token/grant"
@@ -42,25 +34,18 @@ def fetch_token(uid, password):
 
 @app.route('/Token', methods=['GET'])
 def get_token():
-    tokens = load_tokens()
-    if not tokens:
-        return Response(" - Failed to load tokens!", status=500, mimetype='text/plain')
+    uid = request.args.get('Uid')
+    password = request.args.get('Pw')
 
-    results = []
-    for uid, password in tokens:
-        result = fetch_token(uid, password)
-        results.append(result)
-        
-        # يمكن إرجاع النتائج كلما كانت القائمة تحتوي على عدد معين من النتائج
-        if len(results) >= 10:  # على سبيل المثال، كل 10 نتائج
-            yield Response("\n".join(results), mimetype='text/plain')
-            results.clear()  # مسح النتائج لتخزين جديدة
+    if not uid or not password:
+        return Response(" - Missing Uid or Pw!", status=400, mimetype='text/plain')
 
-    # إرجاع أي نتائج متبقية
-    if results:
-        return Response("\n".join(results), mimetype='text/plain')
+    # استخدام ThreadPoolExecutor لتحسين الأداء
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        future = executor.submit(fetch_token, uid, password)
+        result = future.result()
 
-    return Response(" - No tokens processed.", status=204)
+    return Response(result, mimetype='text/plain')
 
 if __name__ == '__main__':
     app.run(threaded=True)
