@@ -41,7 +41,7 @@ def get_token():
         return Response(" - Missing Uid or Pw!", status=400, mimetype='text/plain')
 
     # استخدام ThreadPoolExecutor لتحسين الأداء
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         future = executor.submit(fetch_token, uid, password)
         result = future.result()
 
