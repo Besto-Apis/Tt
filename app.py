@@ -50,8 +50,17 @@ def get_token():
     for uid, password in tokens:
         result = fetch_token(uid, password)
         results.append(result)
+        
+        # يمكن إرجاع النتائج كلما كانت القائمة تحتوي على عدد معين من النتائج
+        if len(results) >= 10:  # على سبيل المثال، كل 10 نتائج
+            yield Response("\n".join(results), mimetype='text/plain')
+            results.clear()  # مسح النتائج لتخزين جديدة
 
-    return Response("\n".join(results), mimetype='text/plain')
+    # إرجاع أي نتائج متبقية
+    if results:
+        return Response("\n".join(results), mimetype='text/plain')
+
+    return Response(" - No tokens processed.", status=204)
 
 if __name__ == '__main__':
     app.run(threaded=True)
